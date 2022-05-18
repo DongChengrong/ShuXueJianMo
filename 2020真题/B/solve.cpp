@@ -26,6 +26,7 @@ struct Node
     }
 } ;
 
+int vis[200];  //标记节点是否访问过，每个节点只访问一次，矿场在离开时标记
 int s, t;  //起点与终点
 int cap, money, income, day, deadline;  //负载上限、初始资金、基础收入、总天数、最后期限
 int f[3], w[3];  //食物和水在三种天气情况下的消耗，依次存储晴朗、高温、沙暴
@@ -37,10 +38,13 @@ vector<int> G[100];  //用于存储无向图
 //初始化
 void init(){
     //预处理部分
-    //从input_1.in中读取数据
-    freopen("C:\\数学建模\\ShuXueJianMo\\2020真题\\B\\input_1.in", "r", stdin);
+    //从输入文件中读取数据
+    freopen("C:\\数学建模\\ShuXueJianMo\\2020真题\\B\\input_2.in", "r", stdin);
     while(!q.empty()) q.pop();  //清空队列
     memset(weather, 0, sizeof(weather));
+    memset(vis, 0, sizeof(vis));
+    memset(mine, 0, sizeof(mine));
+    memset(village, 0 , sizeof(village));
     //读入数据
     int i, j; //用于临时存储数据
     scanf("%d%d%d%d", &cap, &money, &income, &deadline);
@@ -69,6 +73,7 @@ vector<Node2> solve(){
     Node start = Node(cap, money - tmp * (f[0] * m_f + w[0] * m_w), f[0] * tmp, w[0] * tmp);
     start.path.push_back((Node2){s,start.M, start.w,start.f});
     q.push(start);
+    vis[s] = 1;
     while (!q.empty()) {   //进行广度优先搜索
         Node node = q.front(); q.pop();   //取出队列顶部元素
         int id = node.path[node.path.size()-1].cur;   //得到所在位置
@@ -80,6 +85,7 @@ vector<Node2> solve(){
             node.M = node.M - tmp * (f[0] * m_f + w[0] * m_w);
         }
         for (int i = 0; i < G[id].size(); ++i) {   //移动
+            if (vis[G[id][i]]) continue;
             Node new_node = node;
             if (weather[day] == 2) {  //遇到沙暴天气，原地驻留
                 new_node.f -= f[2];
@@ -98,6 +104,7 @@ vector<Node2> solve(){
                 }
                 new_node.path.push_back((Node2){G[id][i], new_node.M,new_node.w, new_node.f});
                 q.push(new_node);
+                vis[G[id][i]] = 1;
             }
         }
         if (mine[id]) {   //遇到矿场，进行挖矿操作
@@ -128,7 +135,6 @@ void print(vector<Node2> path){
 
 int main(){
     init();
-    //puts("111111111111");
     vector<Node2> path = solve();
     print(path);
 }
